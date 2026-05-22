@@ -1,0 +1,12 @@
+# Datos — demasiado pesados para GitHub
+data/input/*.csv
+
+# Credenciales — nunca al repo
+secrets/
+
+# Logs de Airflow
+logs/
+
+# Caché de Python
+__pycache__/
+*.pyc
