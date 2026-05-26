@@ -237,9 +237,7 @@ def calcular_kpi_ratings(**ctx):
 
 def calcular_kpi_grupos(**ctx):
     hook = PostgresHook(postgres_conn_id=CONN_ID)
-    hook.run("TRUNCATE TABLE kpi_volume_vs_rating")
-    hook.run("TRUNCATE TABLE kpi_hostel_ranking")
-    hook.run("TRUNCATE TABLE kpi_equivalent_groups")
+    hook.run("TRUNCATE TABLE kpi_volume_vs_rating, kpi_hostel_ranking, kpi_equivalent_groups CASCADE")
 
     # Grupos a nivel ciudad
     hook.run(
