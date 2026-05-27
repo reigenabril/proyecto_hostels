@@ -7,6 +7,8 @@ carga staging en el DWH y calcula KPIs.
 
 from __future__ import annotations
 
+from tarea_drive_gdown import descargar_csvs_drive
+
 import logging
 from datetime import datetime, timedelta
 
@@ -457,6 +459,11 @@ with DAG(
     default_args=default_args,
     tags=["hostels", "etl", "kpis"],
 ) as dag:
+    t0 = PythonOperator(
+    task_id="descargar_csvs_drive",
+    python_callable=descargar_csvs_drive,
+    )
+
 
     t1 = PythonOperator(
         task_id="verificar_archivos",
@@ -487,5 +494,6 @@ with DAG(
         task_id="calcular_kpi_drivers",
         python_callable=calcular_kpi_drivers,
     )
-
-    t1 >> t2 >> t3 >> t4 >> t5 >> t6
+   
+    t0 >> t1 >> t2 >> t3 >> t4 >> t5 >> t6
+    

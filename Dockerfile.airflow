@@ -16,9 +16,10 @@ RUN pip install --no-cache-dir --constraint "${AIRFLOW_CONSTRAINTS_URL}" \
     "pandas>=2.0,<3" \
     "openpyxl>=3.1,<4"
 
-# pyarrow y Google se instalan sin constraints para evitar conflictos de versiones
+# pyarrow, Google y gdown se instalan sin constraints
 RUN pip install --no-cache-dir \
     "pyarrow>=14,<22" \
     "google-auth>=2.20,<3" \
     "google-auth-httplib2>=0.2,<1" \
-    "google-api-python-client>=2.90,<3"
+    "google-api-python-client>=2.90,<3" \
+    "gdown>=5.1,<6"
