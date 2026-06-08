@@ -187,3 +187,57 @@ CREATE INDEX IF NOT EXISTS idx_stg_hostels_country  ON stg_hostels(city_country)
 CREATE INDEX IF NOT EXISTS idx_stg_hostels_star     ON stg_hostels(star_rating);
 CREATE INDEX IF NOT EXISTS idx_ranking_group        ON kpi_hostel_ranking(group_key);
 CREATE INDEX IF NOT EXISTS idx_profile_drivers_seg  ON kpi_user_profile_drivers(segment_key);
+
+-- =============================================
+-- VISTA: stg_users con labels en español
+-- =============================================
+CREATE OR REPLACE VIEW vw_users_es AS
+SELECT
+    id_user,
+    CASE gender_code
+        WHEN 'MALE'           THEN 'Hombre'
+        WHEN 'FEMALE'         THEN 'Mujer'
+        WHEN 'COUPLE'         THEN 'Pareja'
+        WHEN 'ALLFEMALEGROUP' THEN 'Grupo Femenino'
+        WHEN 'ALLMALEGROUP'   THEN 'Grupo Masculino'
+        WHEN 'MIXEDGROUP'     THEN 'Grupo Mixto'
+        ELSE gender_code
+    END AS gender_code,
+    age_range,
+    CASE trip_code
+        WHEN 'REGULARVACATION' THEN 'Vacaciones'
+        WHEN 'GAPYEAR'         THEN 'Año Sabático'
+        WHEN 'RTWTRIP'         THEN 'Viaje por el Mundo'
+        WHEN 'WEEKENDAWAY'     THEN 'Salida de Fin de Semana'
+        WHEN 'COLLEGEBREAK'    THEN 'Vacaciones Universitarias'
+        WHEN 'OTHER'           THEN 'Otros'
+        ELSE trip_code
+    END AS trip_code,
+    nationality_code,
+    nationality_name,
+    number_reviews,
+    loaded_at
+FROM stg_users;
+
+-- =============================================
+-- VISTA: stg_hostels con labels en español
+-- =============================================
+CREATE OR REPLACE VIEW vw_hostels_es AS
+SELECT
+    id_hostel,
+    name,
+    CASE type
+        WHEN 'HOSTEL'     THEN 'Hostel'
+        WHEN 'HOTEL'      THEN 'Hotel'
+        WHEN 'GUESTHOUSE' THEN 'Casa de Huéspedes'
+        WHEN 'APARTMENT'  THEN 'Apartamento'
+        WHEN 'CAMPSITE'   THEN 'Camping'
+        ELSE type
+    END AS type,
+    star_rating,
+    city_name,
+    city_country,
+    total_ratings,
+    free_cancellation,
+    loaded_at
+FROM stg_hostels;
