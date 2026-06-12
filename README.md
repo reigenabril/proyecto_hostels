@@ -149,9 +149,9 @@ Click en **Save** y esperar que sincronice.
 
 ### Cargar las visualizaciones
 
-Para cada query del archivo `metabase_queries.sql`:
+Para cada query del archivo `kpi_marketing.sql` (y las de `guia_dashboard_marketing.md`):
 
-1. **+ Nuevo → Pregunta → Native query**
+1. **+ Nuevo → Pregunta → Consulta nativa**
 2. Seleccionar base `DWH Hostels`
 3. Pegar la query (una por vez)
 4. Click en ▶ para ejecutar
@@ -163,6 +163,26 @@ Para cada query del archivo `metabase_queries.sql`:
 1. **+ Nuevo → Dashboard** → nombre: `Hostel Analytics`
 2. Agregar todas las preguntas guardadas
 3. Organizar por bloque arrastrando
+
+### Compartir el dashboard con un compañero
+
+En la terminal (dentro de la carpeta del proyecto):
+
+```bash
+# Exportar preguntas, dashboards y conexión
+docker exec postgres-metabase pg_dump -U metabase --data-only \
+  -t public.report_card -t public.report_dashboard -t public.report_dashboardcard \
+  -t public.metabase_database -t public.collection \
+  > export_metabase.sql
+```
+
+Tu compañero importa el archivo en su máquina:
+
+```bash
+cat export_metabase.sql | docker exec -i postgres-metabase psql -U metabase
+```
+
+> **Aviso:** La importación pisa el contenido existente de Metabase. Asegurate de que tu compañero no tenga cosas importantes antes de importar.
 
 ---
 

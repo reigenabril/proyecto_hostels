@@ -49,6 +49,8 @@ def _log_stage(hook, dag_run_id, stage, status, processed=0, excluded=0, reason=
 # ── Tarea 1: verificar archivos ────────────────────────────────────────────────
 
 def verificar_archivos(**ctx):
+    """Verifica que los archivos CSV de entrada existan antes de comenzar el pipeline.
+    Si falta algún archivo, lanza FileNotFoundError para detener la ejecución."""
     import os
     missing = [f for f in [DETAIL_FILE, REVIEW_FILE] if not os.path.exists(f)]
     if missing:
@@ -59,6 +61,9 @@ def verificar_archivos(**ctx):
 # ── Tarea 2: cargar staging ────────────────────────────────────────────────────
 
 def cargar_staging(**ctx):
+    """Lee los CSVs de hostels y reviews, los limpia (nulos, duplicados, hostels
+    sin detalle), y los inserta en las tablas staging (stg_hostels, stg_users, stg_reviews).
+    Registra el progreso en pipeline_run_log."""
     hook = PostgresHook(postgres_conn_id=CONN_ID)
     dag_run_id = ctx["run_id"]
 
@@ -187,27 +192,37 @@ def cargar_staging(**ctx):
 # ── Tarea 3: KPI 1 — cobertura ─────────────────────────────────────────────────
 
 def calcular_kpi_cobertura(**ctx):
+    """KPI 1: calcula el porcentaje de hostels que tienen al menos una reseña
+    (cobertura = hostels con reviews / total hostels * 100)."""
     hook = PostgresHook(postgres_conn_id=CONN_ID)
     hook.run("TRUNCATE TABLE kpi_coverage")
     hook.run(
         """
-        INSERT INTO kpi_coverage (total_hostels, hostels_with_reviews, coverage_pct)
+        INSERT INTO kpi_coverage (total_hostels, hostels_with_reviews, hostels_without_reviews, coverage_pct)
         SELECT
-            (SELECT COUNT(*) FROM stg_hostels)                        AS total_hostels,
-            COUNT(DISTINCT r.id_hostel)                               AS hostels_with_reviews,
-            ROUND(COUNT(DISTINCT r.id_hostel) * 100.0
-                  / NULLIF((SELECT COUNT(*) FROM stg_hostels), 0), 2) AS coverage_pct
-        FROM stg_reviews r
+            total,
+            con_reviews,
+            total - con_reviews,
+            ROUND(con_reviews * 100.0 / NULLIF(total, 0), 2)
+        FROM (
+            SELECT
+                (SELECT COUNT(*) FROM stg_hostels)          AS total,
+                COUNT(DISTINCT r.id_hostel)                 AS con_reviews
+            FROM stg_reviews r
+        ) sub
         """
     )
-    result = hook.get_first("SELECT total_hostels, hostels_with_reviews, coverage_pct FROM kpi_coverage ORDER BY id DESC LIMIT 1")
-    log.info("KPI Cobertura: %d hostels totales, %d con reseñas (%.2f%%)",
-             result[0], result[1], result[2])
+    result = hook.get_first("SELECT total_hostels, hostels_with_reviews, hostels_without_reviews, coverage_pct FROM kpi_coverage ORDER BY id DESC LIMIT 1")
+    log.info("KPI Cobertura: %d hostels totales, %d con reseñas, %d sin reseñas (%.2f%%)",
+             result[0], result[1], result[2], result[3])
 
 
 # ── Tarea 4: KPIs 2, 3 y 9 — ratings por hostel ───────────────────────────────
 
 def calcular_kpi_ratings(**ctx):
+    """KPIs 2, 3 y 9: calcula el promedio y desviación estándar de cada dimensión
+    de rating (overall, safety, location, staff, atmosphere, cleanliness, facilities)
+    para cada hostel que tenga reseñas."""
     hook = PostgresHook(postgres_conn_id=CONN_ID)
     hook.run("TRUNCATE TABLE kpi_hostel_ratings")
     hook.run(
@@ -238,6 +253,9 @@ def calcular_kpi_ratings(**ctx):
 # ── Tarea 5: KPIs 5, 6 y 7 — grupos equivalentes y rankings ───────────────────
 
 def calcular_kpi_grupos(**ctx):
+    """KPIs 5, 6 y 7: agrupa hostels equivalentes por ciudad y país (misma
+    categoría, tipo y ubicación), calcula el ranking de cada hostel dentro de su
+    grupo, y la correlación entre volumen de reseñas y rating promedio."""
     hook = PostgresHook(postgres_conn_id=CONN_ID)
     hook.run("TRUNCATE TABLE kpi_volume_vs_rating, kpi_hostel_ranking, kpi_equivalent_groups CASCADE")
 
@@ -338,6 +356,10 @@ def calcular_kpi_grupos(**ctx):
 # ── Tarea 6: KPIs 4 y 8 — drivers de satisfacción ─────────────────────────────
 
 def calcular_kpi_drivers(**ctx):
+    """KPIs 4 y 8: identifica qué dimensión de satisfacción (safety, location,
+    staff, etc.) tiene mayor correlación con el rating general, tanto a nivel
+    global por grupo equivalente como segmentado por perfil de usuario
+    (trip_code, gender, age_range, hostel_type)."""
     hook = PostgresHook(postgres_conn_id=CONN_ID)
     hook.run("TRUNCATE TABLE kpi_global_drivers")
     hook.run("TRUNCATE TABLE kpi_user_profile_drivers")
@@ -460,8 +482,8 @@ with DAG(
     tags=["hostels", "etl", "kpis"],
 ) as dag:
     t0 = PythonOperator(
-    task_id="descargar_csvs_drive",
-    python_callable=descargar_csvs_drive,
+        task_id="descargar_csvs_drive",
+        python_callable=descargar_csvs_drive,
     )
 
 

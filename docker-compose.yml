@@ -62,7 +62,7 @@ services:
       # Credencial de Google Drive: se pasa como variable de entorno, nunca hardcodeada.
       # Crear el archivo credentials.json en ./secrets/ y referenciarlo así:
       - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/secrets/credentials.json
-      - AIRFLOW_CONN_POSTGRES_DWH=postgres://dwh:dwh123@postgres-dwh:5432/dwh
+      - AIRFLOW_CONN_POSTGRES_DWH=postgresql://dwh:dwh123@postgres-dwh:5432/dwh
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -91,7 +91,7 @@ services:
       - AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=30
       - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth
       - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/secrets/credentials.json
-      - AIRFLOW_CONN_POSTGRES_DWH=postgres://dwh:dwh123@postgres-dwh:5432/dwh
+      - AIRFLOW_CONN_POSTGRES_DWH=postgresql://dwh:dwh123@postgres-dwh:5432/dwh
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -125,7 +125,7 @@ services:
       - AIRFLOW__WEBSERVER__SECRET_KEY=hostel-lab-secret-key
       - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth
       - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/secrets/credentials.json
-      - AIRFLOW_CONN_POSTGRES_DWH=postgres://dwh:dwh123@postgres-dwh:5432/dwh
+      - AIRFLOW_CONN_POSTGRES_DWH=postgresql://dwh:dwh123@postgres-dwh:5432/dwh
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs

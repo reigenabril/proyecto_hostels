@@ -54,9 +54,10 @@ CREATE TABLE IF NOT EXISTS stg_reviews (
 -- =============================================
 CREATE TABLE IF NOT EXISTS kpi_coverage (
     id                    SERIAL PRIMARY KEY,
-    total_hostels         INTEGER NOT NULL,
-    hostels_with_reviews  INTEGER NOT NULL,
-    coverage_pct          NUMERIC(5,2) NOT NULL,
+    total_hostels           INTEGER NOT NULL,
+    hostels_with_reviews    INTEGER NOT NULL,
+    hostels_without_reviews INTEGER NOT NULL,
+    coverage_pct            NUMERIC(5,2) NOT NULL,
     calculated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
