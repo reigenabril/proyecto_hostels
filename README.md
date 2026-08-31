@@ -7,10 +7,7 @@ Sistema de procesamiento y visualización de datos para análisis de hostels y r
 ---
 
 ## Requisitos previos
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
-- Al menos **6 GB de RAM** asignados a Docker
-  - Docker Desktop → Settings → Resources → Memory → 6 GB → Apply & Restart
+[Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
 
 ---
 
@@ -107,21 +104,10 @@ Navegador → **http://localhost:8080**
 1. En la lista de DAGs, buscar **`hostel_pipeline`**
 2. Activar el toggle (si está pausado)
 3. Click en ▶ **Trigger DAG**
-4. La tarea `cargar_staging` tarda ~15 minutos por el volumen de datos — es normal
 
 ### Verificar que los datos cargaron
 
-```bash
-docker exec -it postgres-dwh psql -U dwh -d dwh -c "
-SELECT 'stg_hostels' as tabla, COUNT(*) FROM stg_hostels
-UNION ALL SELECT 'stg_reviews', COUNT(*) FROM stg_reviews
-UNION ALL SELECT 'kpi_hostel_ratings', COUNT(*) FROM kpi_hostel_ratings
-UNION ALL SELECT 'kpi_hostel_ranking', COUNT(*) FROM kpi_hostel_ranking;
-"
-```
-
 Deberías ver ~41.642 hostels y ~934.000 reseñas.
-
 ---
 
 ## Configuración de Metabase
@@ -129,7 +115,6 @@ Deberías ver ~41.642 hostels y ~934.000 reseñas.
 ### Abrir la UI
 
 Navegador → **http://localhost:3000**
-
 La primera vez te pide crear una cuenta (nombre, email, contraseña — usá lo que quieras, es local).
 
 ### Conectar el DWH
@@ -165,28 +150,6 @@ Para cada query del archivo `metabase_queries.sql`:
 3. Organizar por bloque arrastrando
 
 ---
-
-## Comandos útiles
-
-```bash
-# Ver estado de los contenedores
-docker compose ps
-
-# Ver logs del scheduler (útil si algo falla)
-docker compose logs -f airflow-scheduler
-
-# Apagar todo (los datos se conservan)
-docker compose down
-
-# Apagar y borrar todos los datos (reset total)
-docker compose down -v
-
-# Reconstruir la imagen de Airflow (si modifican el Dockerfile)
-docker compose up -d --build
-```
-
----
-
 ## Servicios y puertos
 
 | Servicio   | URL                    | Credenciales                        |
@@ -195,28 +158,4 @@ docker compose up -d --build
 | Metabase   | http://localhost:3000  | las que creaste en el primer acceso |
 | PostgreSQL DWH | `localhost:5432`   | usuario `dwh`, contraseña `dwh123`  |
 
----
-
-## Solución de problemas frecuentes
-
-**Docker no encuentra el compose:**
-```bash
-# Asegurarse de estar en la carpeta del proyecto
-cd ~/Documentos/proyecto_hostels
-docker compose up -d --build
-```
-
-**La tarea cargar_staging falla con código -9:**
-- Falta RAM. Ir a Docker Desktop → Settings → Resources → Memory → subir a 6 GB.
-
-**No puedo conectarme a localhost después de reiniciar Docker:**
-```bash
-docker compose up -d
-# esperar 30 segundos y volver a intentar
-```
-
-**Las tablas del DWH están vacías:**
-- El DAG no corrió todavía o falló. Verificar en Airflow → `hostel_pipeline` → Grid.
-
-**Metabase no muestra las tablas:**
-- Ir a Admin → Databases → DWH Hostels → Sync database schema now.
+Ir a Admin → Databases → DWH Hostels → Sync database schema now.
